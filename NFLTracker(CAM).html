@@ -358,7 +358,7 @@
     <div class="snapshot-container"></div>
   </div>
   <div class="team-logo-wrapper">
-    <img src="Assets/Images/Detroit_Lions_logo.svg.png" alt="Detroit Lions" class="team-logo" data-team="DetroitLions" role="gridcell" tabindex="0"/>
+    <img src="Assets/Images/Detroit_Lions_logo.svg" alt="Detroit Lions" class="team-logo" data-team="DetroitLions" role="gridcell" tabindex="0"/>
     <div class="snapshot-container"></div>
   </div>
   <div class="team-logo-wrapper">
@@ -390,7 +390,7 @@
     <div class="snapshot-container"></div>
   </div>
   <div class="team-logo-wrapper">
-    <img src="Assets/Images/Los_Angeles_Rams_logo.svg.png" alt="Los Angeles Rams" class="team-logo" data-team="LosAngelesRams" role="gridcell" tabindex="0"/>
+    <img src="Assets/Images/Los_Angeles_Rams_logo.svg" alt="Los Angeles Rams" class="team-logo" data-team="LosAngelesRams" role="gridcell" tabindex="0"/>
     <div class="snapshot-container"></div>
   </div>
   <div class="team-logo-wrapper">
@@ -426,7 +426,7 @@
     <div class="snapshot-container"></div>
   </div>
   <div class="team-logo-wrapper">
-    <img src="Assets/Images/San_Francisco_49ers_logo.svg.png" alt="San Francisco 49ers" class="team-logo" data-team="SanFrancisco49ers" role="gridcell" tabindex="0"/>
+    <img src="Assets/Images/San_Francisco_49ers_logo.svg" alt="San Francisco 49ers" class="team-logo" data-team="SanFrancisco49ers" role="gridcell" tabindex="0"/>
     <div class="snapshot-container"></div>
   </div>
   <div class="team-logo-wrapper">
@@ -572,25 +572,35 @@
       }
     }
 
-     // Enable Camera Preview
-  async function enableCamera() {
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+async function enableCamera() {
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    try {
+      // Try exact facingMode to get rear camera
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } } });
+      video.srcObject = stream;
+      videoContainer.style.display = 'block';
+      cameraEnabled = true;
+      cameraToggle.setAttribute('aria-pressed', 'true');
+    } catch (err) {
+      // If exact fails (some devices), fallback to preferred facingMode
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
         video.srcObject = stream;
         videoContainer.style.display = 'block';
         cameraEnabled = true;
         cameraToggle.setAttribute('aria-pressed', 'true');
-      } catch (err) {
-        alert('Could not access camera: ' + err.message);
+      } catch (fallbackErr) {
+        alert('Could not access the rear camera: ' + fallbackErr.message);
         cameraToggle.setAttribute('aria-pressed', 'false');
         cameraEnabled = false;
         videoContainer.style.display = 'none';
       }
-    } else {
-      alert('Your browser does not support camera access.');
     }
+  } else {
+    alert('Your browser does not support camera access.');
   }
+}
+
 
   // Disable camera preview and stop stream
   function disableCamera() {
