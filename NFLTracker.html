@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>NFL Fan Spotter with Leaderboard (Responsive)</title>
+<style>
+  body {
+    font-family: 'Orbitron', sans-serif;
+    background: #000;
+    color: #fff;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+  }
+
+  #timer {
+    font-size: 3rem;
+    background: #111;
+    border: 4px solid #aaa;
+    border-radius: 12px;
+    display: inline-block;
+    padding: 0.2em 0.7em;
+    margin: 20px auto 10px;
+    letter-spacing: 0.15em;
+    width: 90vw;
+    max-width: 260px;
+    font-weight: 700;
+    box-sizing: border-box;
+  }
+
+  #reset-button {
+    background-color: #aa0000;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    margin: 0 auto 20px;
+    display: block;
+    transition: background-color 0.3s ease;
+    max-width: 260px;
+    width: 90vw;
+  }
+  #reset-button:hover {
+    background-color: #ff3333;
+  }
+
+  #team-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 10px;
+    max-width: 960px;
+    margin: 0 auto 30px;
+    padding: 0 10px;
+  }
+
+  .team-logo {
+    cursor: pointer;
+    filter: grayscale(100%) brightness(0.6);
+    transition: filter 0.3s ease;
+    max-width: 100px;
+    width: 100%;
+    height: auto;
+    user-select: none; /* prevents accidental text selection on tap */
+  }
+
+  .team-logo.colored {
+    filter: none;
+    brightness: 1;
+  }
+
+  #leaderboard-container {
+    max-width: 600px;
+    margin: 0 auto 40px;
+    background: #111;
+    border-radius: 12px;
+    padding: 12px 20px;
+    box-sizing: border-box;
+  }
+
+  #leaderboard-container h2 {
+    margin-top: 0;
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+  }
+
+  #leaderboard {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  #leaderboard th, #leaderboard td {
+    border: 1px solid #555;
+    padding: 8px;
+  }
+
+  #leaderboard th {
+    background-color: #222;
+  }
+
+  #leaderboard td {
+    text-align: center;
+  }
+
+  footer {
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 1rem;
+  }
+
+  /* Responsive styles for smaller screens */
+
+  @media (max-width: 900px) {
+    #team-grid {
+      grid-template-columns: repeat(6, 1fr);
+      max-width: 600px;
+    }
+    .team-logo {
+      max-width: 80px;
+    }
+    #timer {
+      font-size: 2.5rem;
+      max-width: 220px;
+      width: 80vw;
+    }
+    #reset-button {
+      max-width: 220px;
+      width: 80vw;
+      font-size: 1rem;
+      padding: 8px 16px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    #team-grid {
+      grid-template-columns: repeat(4, 1fr);
+      max-width: 400px;
+    }
+    .team-logo {
+      max-width: 70px;
+    }
+    #timer {
+      font-size: 2rem;
+      max-width: 180px;
+      width: 70vw;
+      padding: 0.15em 0.5em;
+    }
+    #reset-button {
+      max-width: 180px;
+      width: 70vw;
+      font-size: 0.9rem;
+      padding: 6px 12px;
+    }
+    #leaderboard-container {
+      max-width: 100%;
+      padding: 10px 15px;
+    }
+    #leaderboard th, #leaderboard td {
+      padding: 6px 4px;
+      font-size: 0.85rem;
+    }
+    #leaderboard-container h2 {
+      font-size: 1.25rem;
+    }
+  }
+
+  @media (max-width: 400px) {
+    #team-grid {
+      grid-template-columns: repeat(2, 1fr);
+      max-width: 260px;
+      gap: 8px;
+    }
+    .team-logo {
+      max-width: 90px; /* make logos bigger for very small phones, filling 2 columns */
+      width: 100%;
+    }
+    #timer {
+      font-size: 1.8rem;
+      max-width: 160px;
+      padding: 0.12em 0.4em;
+      width: 90vw;
+    }
+    #reset-button {
+      max-width: 160px;
+      width: 90vw;
+      font-size: 0.85rem;
+      padding: 5px 10px;
+    }
+    #leaderboard-container {
+      max-width: 90vw;
+      padding: 8px 10px;
+    }
+    #leaderboard th, #leaderboard td {
+      font-size: 0.8rem;
+      padding: 4px 3px;
+    }
+  }
+
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<div id="timer" aria-live="polite" aria-label="Countdown timer">24:00:00</div>
+<button id="reset-button" title="Reset timer and spots">Reset</button>
+
+<div id="team-grid" role="grid" aria-label="NFL Teams Grid">
+  <!-- NFL team logos loaded from Wikimedia Commons -->
+  <img src="https://upload.wikimedia.org/wikipedia/commons/6/6a/Arizona_Cardinals_logo.svg" alt="Arizona Cardinals" class="team-logo" data-team="ArizonaCardinals" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/en/c/c9/Atlanta_Falcons_logo.svg" alt="Atlanta Falcons" class="team-logo" data-team="AtlantaFalcons" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/en/5/54/Baltimore_Ravens_logo.svg" alt="Baltimore Ravens" class="team-logo" data-team="BaltimoreRavens" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/en/7/77/Buffalo_Bills_logo.svg" alt="Buffalo Bills" class="team-logo" data-team="BuffaloBills" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/en/9/9d/Carolina_Panthers_logo.svg" alt="Carolina Panthers" class="team-logo" data-team="CarolinaPanthers" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/commons/5/5c/Chicago_Bears_logo.svg" alt="Chicago Bears" class="team-logo" data-team="ChicagoBears" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/commons/8/81/Cincinnati_Bengals_logo.svg" alt="Cincinnati Bengals" class="team-logo" data-team="CincinnatiBengals" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/commons/d/d2/Cleveland_Browns_logo.svg" alt="Cleveland Browns" class="team-logo" data-team="ClevelandBrowns" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/commons/1/15/Dallas_Cowboys_logo.svg" alt="Dallas Cowboys" class="team-logo" data-team="DallasCowboys" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/en/4/44/Denver_Broncos_logo.svg" alt="Denver Broncos" class="team-logo" data-team="DenverBroncos" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/commons/7/70/Detroit_Lions_logo.svg" alt="Detroit Lions" class="team-logo" data-team="DetroitLions" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/commons/5/50/Green_Bay_Packers_logo.svg" alt="Green Bay Packers" class="team-logo" data-team="GreenBayPackers" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/en/2/28/Houston_Texans_logo.svg" alt="Houston Texans" class="team-logo" data-team="HoustonTexans" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/commons/0/0f/Indianapolis_Colts_logo.svg" alt="Indianapolis Colts" class="team-logo" data-team="IndianapolisColts" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/en/c/ca/Jacksonville_Jaguars_logo.svg" alt="Jacksonville Jaguars" class="team-logo" data-team="JacksonvilleJaguars" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/en/2/27/Kansas_City_Chiefs_logo.svg" alt="Kansas City Chiefs" class="team-logo" data-team="KansasCityChiefs" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/en/7/7a/Las_Vegas_Raiders_logo.svg" alt="Las Vegas Raiders" class="team-logo" data-team="LasVegasRaiders" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/en/7/7b/Los_Angeles_Chargers_logo.svg" alt="Los Angeles Chargers" class="team-logo" data-team="LosAngelesChargers" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/en/9/9e/Los_Angeles_Rams_logo.svg" alt="Los Angeles Rams" class="team-logo" data-team="LosAngelesRams" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/en/f/fb/Miami_Dolphins_logo.svg" alt="Miami Dolphins" class="team-logo" data-team="MiamiDolphins" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/en/5/5e/Minnesota_Vikings_logo.svg" alt="Minnesota Vikings" class="team-logo" data-team="MinnesotaVikings" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/en/b/b9/New_England_Patriots_logo.svg" alt="New England Patriots" class="team-logo" data-team="NewEnglandPatriots" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/en/8/8e/New_Orleans_Saints_logo.svg" alt="New Orleans Saints" class="team-logo" data-team="NewOrleansSaints" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/en/6/60/New_York_Giants_logo.svg" alt="New York Giants" class="team-logo" data-team="NewYorkGiants" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/en/6/6d/New_York_Jets_logo.svg" alt="New York Jets" class="team-logo" data-team="NewYorkJets" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/en/8/8e/Philadelphia_Eagles_logo.svg" alt="Philadelphia Eagles" class="team-logo" data-team="PhiladelphiaEagles" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/en/7/7a/Pittsburgh_Steelers_logo.svg" alt="Pittsburgh Steelers" class="team-logo" data-team="PittsburghSteelers" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/commons/1/1e/San_Francisco_49ers_logo.svg" alt="San Francisco 49ers" class="team-logo" data-team="SanFrancisco49ers" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/en/7/7e/Seattle_Seahawks_logo.svg" alt="Seattle Seahawks" class="team-logo" data-team="SeattleSeahawks" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/en/a/a2/Tampa_Bay_Buccaneers_logo.svg" alt="Tampa Bay Buccaneers" class="team-logo" data-team="TampaBayBuccaneers" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/en/c/cb/Tennessee_Titans_logo.svg" alt="Tennessee Titans" class="team-logo" data-team="TennesseeTitans" role="gridcell" tabindex="0" />
+  <img src="https://upload.wikimedia.org/wikipedia/en/1/10/Washington_Commanders_logo.svg" alt="Washington Commanders" class="team-logo" data-team="WashingtonCommanders" role="gridcell" tabindex="0" />
+</div>
+
+<div id="leaderboard-container" aria-label="Leaderboard of completion times">
+  <h2>Completion Leaderboard</h2>
+  <table id="leaderboard" role="table" aria-describedby="leaderboard-desc">
+    <caption id="leaderboard-desc">Ranked list of fastest completion times to spot all 32 NFL fans</caption>
+    <thead>
+      <tr>
+        <th scope="col">Rank</th>
+        <th scope="col">Date</th>
+        <th scope="col">Time Taken (HH:MM:SS)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Entries programmatically inserted -->
+    </tbody>
+  </table>
+</div>
+
+<footer>Click a logo to spot a fan. The timer resets after 24 hours from the first spot. Completion times are shown here.</footer>
+
+<script>
+  const COUNTDOWN_MS = 24 * 60 * 60 * 1000;
+  const timerEl = document.getElementById('timer');
+  const logos = document.querySelectorAll('.team-logo');
+  const leaderboardBody = document.querySelector('#leaderboard tbody');
+  const resetButton = document.getElementById('reset-button');
+
+  let startTime = localStorage.getItem('startTime');
+  let spots = JSON.parse(localStorage.getItem('spots') || '{}');
+  let leaderboard = JSON.parse(localStorage.getItem('leaderboard') || '[]');
+
+  function formatTime(ms) {
+    let totalSeconds = Math.floor(ms / 1000);
+    let hours = Math.floor(totalSeconds / 3600);
+    let minutes = Math.floor((totalSeconds % 3600) / 60);
+    let seconds = totalSeconds % 60;
+    return (
+      String(hours).padStart(2, '0') + ':' +
+      String(minutes).padStart(2, '0') + ':' +
+      String(seconds).padStart(2, '0')
+    );
+  }
+
+  function formatDate(dateStr) {
+    const d = new Date(dateStr);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const h = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    return `${y}-${m}-${day} ${h}:${min}`;
+  }
+
+  function setLogoStates() {
+    logos.forEach(logo => {
+      const team = logo.dataset.team;
+      if (spots[team]) {
+        logo.classList.add('colored');
+      } else {
+        logo.classList.remove('colored');
+      }
+    });
+  }
+
+  function renderLeaderboard() {
+    leaderboard.sort((a, b) => a.timeMs - b.timeMs);
+
+    leaderboardBody.innerHTML = '';
+    leaderboard.forEach((entry, index) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${index + 1}</td>
+        <td>${formatDate(entry.date)}</td>
+        <td>${formatTime(entry.timeMs)}</td>
+      `;
+      leaderboardBody.appendChild(tr);
+    });
+  }
+
+  function allSelected() {
+    return Object.keys(spots).length === logos.length;
+  }
+
+  function resetAll() {
+    spots = {};
+    startTime = null;
+    localStorage.removeItem('spots');
+    localStorage.removeItem('startTime');
+    logos.forEach(logo => logo.classList.remove('colored'));
+    timerEl.textContent = '24:00:00';
+  }
+
+  function updateTimer() {
+    if (!startTime) {
+      timerEl.textContent = '24:00:00';
+      return;
+    }
+    const elapsed = Date.now() - startTime;
+
+    if (elapsed >= COUNTDOWN_MS) {
+      resetAll();
+    } else {
+      const remaining = COUNTDOWN_MS - elapsed;
+      timerEl.textContent = formatTime(remaining);
+    }
+  }
+
+  function onLogoClick(e) {
+    const logo = e.target;
+    if (!logo.classList.contains('team-logo')) return;
+
+    const team = logo.dataset.team;
+
+    if (!startTime) {
+      startTime = Date.now();
+      localStorage.setItem('startTime', startTime);
+    }
+
+    if (spots[team]) {
+      // Undo spot
+      delete spots[team];
+      localStorage.setItem('spots', JSON.stringify(spots));
+      logo.classList.remove('colored');
+    } else {
+      // Add spot
+      spots[team] = new Date().toISOString();
+      localStorage.setItem('spots', JSON.stringify(spots));
+      logo.classList.add('colored');
+
+      if (allSelected()) {
+        const timeTakenMs = Date.now() - startTime;
+        const completionDate = new Date().toISOString();
+
+        leaderboard.push({ date: completionDate, timeMs: timeTakenMs });
+        localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+        renderLeaderboard();
+
+        alert(`Congratulations! You spotted all 32 fans in ${formatTime(timeTakenMs)}.`);
+      }
+    }
+  }
+
+  function init() {
+    setLogoStates();
+    renderLeaderboard();
+    updateTimer();
+  }
+
+  logos.forEach(logo => {
+    logo.addEventListener('click', onLogoClick);
+    // Keyboard accessibility for toggling spots via Enter or Space keys
+    logo.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        logo.click();
+      }
+    });
+  });
+
+  resetButton.addEventListener('click', () => {
+    if (confirm('Are you sure you want to reset the timer and fan spots? This will clear current 24-hour period data.')) {
+      resetAll();
+    }
+  });
+
+  setInterval(updateTimer, 1000);
+  init();
+
+</script>
+
+</body>
+</html>
