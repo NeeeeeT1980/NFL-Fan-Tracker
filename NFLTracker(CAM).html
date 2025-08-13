@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NFL Fan Spotter with Digital-7 Font and NFL Shield</title>
+
+  <style>
+    /* Font Face Definition for Digital-7 */
+    @font-face {
+      font-family: 'Digital7';
+      src: url('Assets/Fonts/digital-7.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    body {
+      font-family: 'Orbitron', sans-serif;
+      background: #000;
+      color: #ffffff;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+
+/* Camera toggle button styling top-left */
+  #camera-toggle {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: white;
+    font-size: 28px;
+    z-index: 1000;
+    user-select: none;
+  }
+  #camera-toggle[aria-pressed="true"] {
+    color: #4caf50; /* green when active */
+  }
+
+  /* Video preview container */
+  #video-container {
+    position: fixed;
+    top: 60px;
+    left: 10px;
+    width: 160px;
+    height: 120px;
+    background: #222;
+    border: 2px solid #4caf50;
+    border-radius: 8px;
+    overflow: hidden;
+    display: none;
+    z-index: 900;
+  }
+
+  #video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+    /* Container for NFL shield + timer */
+    #timer-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 20px auto 10px;
+      max-width: 320px;
+      width: 90vw;
+      box-sizing: border-box;
+    }
+
+    /* NFL shield styling */
+    #nfl-shield-logo {
+      width: 48px;
+      height: auto;
+      user-select: none;
+    }
+
+    /* Timer with Digital-7 font and border fixing */
+    #timer {
+      font-family: 'Digital7', monospace, sans-serif;
+      background: #000;
+      color: #f9f909;
+      font-size: 3rem;
+      background: #111;
+      border: 4px solid #aaa;
+      border-radius: 12px;
+      padding: 0.2em 0.1em 0.2em 0.1em; /* More padding right to avoid clipping */
+      letter-spacing: 0.12em;
+      font-weight: 700;
+      min-width: max-content;
+      max-width: 100%;
+      width: fit-content;
+      box-sizing: border-box;
+      text-align: center;
+      white-space: nowrap;
+      display: inline-block;
+    }
+
+    #reset-button {
+      background-color: #aa0000;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 0 auto 20px;
+      display: block;
+      transition: background-color 0.3s ease;
+      max-width: 320px;
+      width: 90vw;
+    }
+    #reset-button:hover {
+      background-color: #ff3333;
+    }
+
+    #team-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 10px;
+      max-width: 960px;
+      margin: 0 auto 30px;
+      padding: 0 10px;
+    }
+
+    .team-logo {
+      cursor: pointer;
+      filter: grayscale(100%) brightness(0.6);
+      transition: filter 0.3s ease;
+      max-width: 100px;
+      width: 100%;
+      height: auto;
+      user-select: none;
+    }
+
+    .team-logo.colored {
+      filter: none;
+      brightness: 1;
+    }
+
+   .snapshot-container {
+      margin-top: 4px;
+      max-width: 100px;
+      display: none;
+    }
+    .snapshot {
+      width: 100%;
+      border: 2px solid #4caf50;
+      border-radius: 6px;
+    }
+
+    #leaderboard-container {
+      max-width: 600px;
+      margin: 0 auto 40px;
+      background: #111;
+      border-radius: 12px;
+      padding: 12px 20px;
+      box-sizing: border-box;
+    }
+
+    #leaderboard-container h2 {
+      margin-top: 0;
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+    }
+
+    #leaderboard {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    #leaderboard th, #leaderboard td {
+      border: 1px solid #555;
+      padding: 8px;
+    }
+
+    #leaderboard th {
+      background-color: #222;
+    }
+
+    #leaderboard td {
+      text-align: center;
+    }
+
+    footer {
+      font-size: 0.8rem;
+      color: #666;
+      margin-bottom: 1rem;
+    }
+
+    /* Responsive styles */
+
+    @media (max-width: 900px) {
+      #team-grid {
+        grid-template-columns: repeat(6, 1fr);
+        max-width: 600px;
+      }
+      .team-logo {
+        max-width: 80px;
+      }
+      #timer {
+        font-size: 2.5rem;
+        min-width: 140px;
+        max-width: 220px;
+        width: 80vw;
+      }
+      #reset-button {
+        max-width: 220px;
+        width: 80vw;
+        font-size: 1rem;
+        padding: 8px 16px;
+      }
+      #timer-container {
+        max-width: 280px;
+        width: 80vw;
+      }
+    }
+
+    @media (max-width: 600px) {
+      #team-grid {
+        grid-template-columns: repeat(4, 1fr);
+        max-width: 400px;
+      }
+      .team-logo {
+        max-width: 70px;
+      }
+      #timer {
+        font-size: 2rem;
+        min-width: 120px;
+        max-width: 180px;
+        width: 70vw;
+        padding: 0.15em 0.5em;
+      }
+      #reset-button {
+        max-width: 180px;
+        width: 70vw;
+        font-size: 0.9rem;
+        padding: 6px 12px;
+      }
+      #leaderboard-container {
+        max-width: 100%;
+        padding: 10px 15px;
+      }
+      #leaderboard th, #leaderboard td {
+        padding: 6px 4px;
+        font-size: 0.85rem;
+      }
+      #leaderboard-container h2 {
+        font-size: 1.25rem;
+      }
+      #timer-container {
+        max-width: 240px;
+        width: 70vw;
+      }
+    }
+
+    @media (max-width: 400px) {
+      #team-grid {
+        grid-template-columns: repeat(2, 1fr);
+        max-width: 260px;
+        gap: 8px;
+      }
+      .team-logo {
+        max-width: 90px;
+        width: 100%;
+      }
+      #timer {
+        font-size: 1.8rem;
+        min-width: 100px;
+        max-width: 160px;
+        padding: 0.12em 0.4em;
+        width: 90vw;
+      }
+      #reset-button {
+        max-width: 160px;
+        width: 90vw;
+        font-size: 0.85rem;
+        padding: 5px 10px;
+      }
+      #leaderboard-container {
+        max-width: 90vw;
+        padding: 8px 10px;
+      }
+      #leaderboard th, #leaderboard td {
+        font-size: 0.8rem;
+        padding: 4px 3px;
+      }
+      #timer-container {
+        max-width: 200px;
+        width: 90vw;
+      }
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <button id="camera-toggle" aria-pressed="false" aria-label="Toggle Camera Preview" title="Toggle Camera">
+  📷
+</button>
+
+<div id="video-container">
+  <video id="video" autoplay muted playsinline></video>
+</div>
+  <div id="timer-container" role="region" aria-label="Countdown timer and NFL shield logo">
+    <img src="Assets/Images/nfl.png" alt="NFL Shield Logo" id="nfl-shield-logo" />
+    <div id="timer" aria-live="polite" aria-label="Countdown timer">24:00:00</div>
+  </div>
+
+  <button id="reset-button" title="Reset timer and spots">Reset</button>
+
+  <div id="team-grid" role="grid" aria-label="NFL Teams Grid">
+  <!-- Wrap each logo + snapshot container inside .team-logo-wrapper -->
+
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/Arizona_Cardinals_logo.svg.png" alt="Arizona Cardinals" class="team-logo" data-team="ArizonaCardinals" role="gridcell" tabindex="0" />
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/Atlanta_Falcons_logo.svg.png" alt="Atlanta Falcons" class="team-logo" data-team="AtlantaFalcons" role="gridcell" tabindex="0" />
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/Baltimore_Ravens_logo.svg.png" alt="Baltimore Ravens" class="team-logo" data-team="BaltimoreRavens" role="gridcell" tabindex="0" />
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/Buffalo_Bills_logo.svg.png" alt="Buffalo Bills" class="team-logo" data-team="BuffaloBills" role="gridcell" tabindex="0" />
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/Carolina_Panthers_logo.svg.png" alt="Carolina Panthers" class="team-logo" data-team="CarolinaPanthers" role="gridcell" tabindex="0"/>
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/Chicago_Bears_logo.svg.png" alt="Chicago Bears" class="team-logo" data-team="ChicagoBears" role="gridcell" tabindex="0"/>
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/Cincinnati_Bengals_logo.svg.png" alt="Cincinnati Bengals" class="team-logo" data-team="CincinnatiBengals" role="gridcell" tabindex="0"/>
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/Cleveland_Browns_logo.svg.png" alt="Cleveland Browns" class="team-logo" data-team="ClevelandBrowns" role="gridcell" tabindex="0"/>
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/Dallas_Cowboys_logo.svg.png" alt="Dallas Cowboys" class="team-logo" data-team="DallasCowboys" role="gridcell" tabindex="0"/>
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/Denver_Broncos_logo.svg.png" alt="Denver Broncos" class="team-logo" data-team="DenverBroncos" role="gridcell" tabindex="0"/>
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/Detroit_Lions_logo.svg.png" alt="Detroit Lions" class="team-logo" data-team="DetroitLions" role="gridcell" tabindex="0"/>
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/Green_Bay_Packers_logo.svg.png" alt="Green Bay Packers" class="team-logo" data-team="GreenBayPackers" role="gridcell" tabindex="0"/>
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/Houston_Texans_logo.svg.png" alt="Houston Texans" class="team-logo" data-team="HoustonTexans" role="gridcell" tabindex="0"/>
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/Indianapolis_Colts_logo.svg.png" alt="Indianapolis Colts" class="team-logo" data-team="IndianapolisColts" role="gridcell" tabindex="0"/>
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/Jacksonville_Jaguars_logo.svg.png" alt="Jacksonville Jaguars" class="team-logo" data-team="JacksonvilleJaguars" role="gridcell" tabindex="0"/>
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/Kansas_City_Chiefs_logo.svg.png" alt="Kansas City Chiefs" class="team-logo" data-team="KansasCityChiefs" role="gridcell" tabindex="0"/>
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/Las_Vegas_Raiders_logo.svg.png" alt="Las Vegas Raiders" class="team-logo" data-team="LasVegasRaiders" role="gridcell" tabindex="0"/>
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/Los_Angeles_Chargers_logo.svg.png" alt="Los Angeles Chargers" class="team-logo" data-team="LosAngelesChargers" role="gridcell" tabindex="0"/>
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/Los_Angeles_Rams_logo.svg.png" alt="Los Angeles Rams" class="team-logo" data-team="LosAngelesRams" role="gridcell" tabindex="0"/>
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/Miami_Dolphins_logo.svg.png" alt="Miami Dolphins" class="team-logo" data-team="MiamiDolphins" role="gridcell" tabindex="0"/>
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/Minnesota_Vikings_logo.svg.png" alt="Minnesota Vikings" class="team-logo" data-team="MinnesotaVikings" role="gridcell" tabindex="0"/>
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/New_England_Patriots_logo.svg.png" alt="New England Patriots" class="team-logo" data-team="NewEnglandPatriots" role="gridcell" tabindex="0"/>
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/New_Orleans_Saints_logo.svg.png" alt="New Orleans Saints" class="team-logo" data-team="NewOrleansSaints" role="gridcell" tabindex="0"/>
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/New_York_Giants_logo.svg.png" alt="New York Giants" class="team-logo" data-team="NewYorkGiants" role="gridcell" tabindex="0"/>
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/New_York_Jets_logo.svg.png" alt="New York Jets" class="team-logo" data-team="NewYorkJets" role="gridcell" tabindex="0"/>
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/Philadelphia_Eagles_logo.svg.png" alt="Philadelphia Eagles" class="team-logo" data-team="PhiladelphiaEagles" role="gridcell" tabindex="0"/>
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/Pittsburgh_Steelers_logo.svg.png" alt="Pittsburgh Steelers" class="team-logo" data-team="PittsburghSteelers" role="gridcell" tabindex="0"/>
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/San_Francisco_49ers_logo.svg.png" alt="San Francisco 49ers" class="team-logo" data-team="SanFrancisco49ers" role="gridcell" tabindex="0"/>
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/Seattle_Seahawks_logo.svg.png" alt="Seattle Seahawks" class="team-logo" data-team="SeattleSeahawks" role="gridcell" tabindex="0"/>
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/Tampa_Bay_Buccaneers_logo.svg.png" alt="Tampa Bay Buccaneers" class="team-logo" data-team="TampaBayBuccaneers" role="gridcell" tabindex="0"/>
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/Tennessee_Titans_logo.svg.png" alt="Tennessee Titans" class="team-logo" data-team="TennesseeTitans" role="gridcell" tabindex="0"/>
+    <div class="snapshot-container"></div>
+  </div>
+  <div class="team-logo-wrapper">
+    <img src="Assets/Images/Washington_Commanders_logo.svg.png" alt="Washington Commanders" class="team-logo" data-team="WashingtonCommanders" role="gridcell" tabindex="0"/>
+    <div class="snapshot-container"></div>
+  </div>
+</div>
+
+  <div id="leaderboard-container" aria-label="Leaderboard of completion times">
+    <h2>Completion Leaderboard</h2>
+    <table id="leaderboard" role="table" aria-describedby="leaderboard-desc">
+      <caption id="leaderboard-desc">Ranked list of fastest completion times to spot all 32 NFL fans</caption>
+      <thead>
+        <tr>
+          <th scope="col">Rank</th>
+          <th scope="col">Date</th>
+          <th scope="col">Time Taken (HH:MM:SS)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Entries programmatically inserted -->
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    Click a logo to spot a fan. The timer resets after 24 hours from the first spot. Completion times are shown here.
+  </footer>
+
+  <script>
+    const COUNTDOWN_MS = 24 * 60 * 60 * 1000;
+    const timerEl = document.getElementById('timer');
+    const logos = document.querySelectorAll('.team-logo');
+    const leaderboardBody = document.querySelector('#leaderboard tbody');
+    const resetButton = document.getElementById('reset-button');
+    const cameraToggle = document.getElementById('camera-toggle');
+    const videoContainer = document.getElementById('video-container');
+    const video = document.getElementById('video');
+
+    let startTime = localStorage.getItem('startTime');
+    let spots = JSON.parse(localStorage.getItem('spots') || '{}');
+    let leaderboard = JSON.parse(localStorage.getItem('leaderboard') || '[]');
+
+    let cameraEnabled = false;
+    let stream = null;
+
+    function formatTime(ms) {
+      let totalSeconds = Math.floor(ms / 1000);
+      let hours = Math.floor(totalSeconds / 3600);
+      let minutes = Math.floor((totalSeconds % 3600) / 60);
+      let seconds = totalSeconds % 60;
+      return (
+        String(hours).padStart(2, '0') + ':' +
+        String(minutes).padStart(2, '0') + ':' +
+        String(seconds).padStart(2, '0')
+      );
+    }
+
+    function formatDate(dateStr) {
+      const d = new Date(dateStr);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const h = String(d.getHours()).padStart(2, '0');
+      const min = String(d.getMinutes()).padStart(2, '0');
+      return `${y}-${m}-${day} ${h}:${min}`;
+    }
+
+    function setLogoStates() {
+      logos.forEach(logo => {
+        const team = logo.dataset.team;
+        if (spots[team]) {
+          logo.classList.add('colored');
+        } else {
+          logo.classList.remove('colored');
+        }
+        // Clear old snapshots on page load
+      const snapshotContainer = logo.parentElement.querySelector('.snapshot-container');
+      snapshotContainer.innerHTML = '';
+      snapshotContainer.style.display = 'none';
+      logo.style.display = 'block';
+      });
+    }
+
+    function renderLeaderboard() {
+      leaderboard.sort((a, b) => a.timeMs - b.timeMs);
+      leaderboardBody.innerHTML = '';
+      leaderboard.forEach((entry, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${formatDate(entry.date)}</td>
+          <td>${formatTime(entry.timeMs)}</td>
+        `;
+        leaderboardBody.appendChild(tr);
+      });
+    }
+
+    function allSelected() {
+      return Object.keys(spots).length === logos.length;
+    }
+
+    function resetAll() {
+      spots = {};
+      startTime = null;
+      localStorage.removeItem('spots');
+      localStorage.removeItem('startTime');
+      logos.forEach(logo => logo.classList.remove('colored'));
+      
+      logos.forEach(logo => {
+      const snapshotContainer = logo.parentElement.querySelector('.snapshot-container');
+      snapshotContainer.innerHTML = '';
+      snapshotContainer.style.display = 'none';
+      logo.style.display = 'block';
+    });
+  
+      timerEl.textContent = '24:00:00';
+    }
+
+    function updateTimer() {
+      if (!startTime) {
+        timerEl.textContent = '24:00:00';
+        return;
+      }
+      const elapsed = Date.now() - startTime;
+      if (elapsed >= COUNTDOWN_MS) {
+        resetAll();
+      } else {
+        const remaining = COUNTDOWN_MS - elapsed;
+        timerEl.textContent = formatTime(remaining);
+      }
+    }
+
+     // Enable Camera Preview
+  async function enableCamera() {
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+        videoContainer.style.display = 'block';
+        cameraEnabled = true;
+        cameraToggle.setAttribute('aria-pressed', 'true');
+      } catch (err) {
+        alert('Could not access camera: ' + err.message);
+        cameraToggle.setAttribute('aria-pressed', 'false');
+        cameraEnabled = false;
+        videoContainer.style.display = 'none';
+      }
+    } else {
+      alert('Your browser does not support camera access.');
+    }
+  }
+
+  // Disable camera preview and stop stream
+  function disableCamera() {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+    video.srcObject = null;
+    videoContainer.style.display = 'none';
+    cameraEnabled = false;
+    cameraToggle.setAttribute('aria-pressed', 'false');
+  }
+
+  // Toggle camera on/off
+  cameraToggle.addEventListener('click', () => {
+    if (cameraEnabled) {
+      disableCamera();
+    } else {
+      enableCamera();
+    }
+  });
+
+  // Take snapshot from video stream
+  function takeSnapshotForLogo(logoElement) {
+    if (!cameraEnabled || !stream) return;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const dataUrl = canvas.toDataURL('image/png');
+
+    const snapshotContainer = logoElement.parentElement.querySelector('.snapshot-container');
+    snapshotContainer.innerHTML = ''; // Clear previous snapshot
+
+    const img = document.createElement('img');
+    img.src = dataUrl;
+    img.alt = `Photo of ${logoElement.alt}`;
+    img.className = 'snapshot';
+    snapshotContainer.appendChild(img);
+  }
+
+
+    function onLogoClick(e) {
+      const logo = e.target;
+      if (!logo.classList.contains('team-logo')) return;
+      const team = logo.dataset.team;
+      if (!startTime) {
+        startTime = Date.now();
+        localStorage.setItem('startTime', startTime);
+      }
+      if (spots[team]) {
+        delete spots[team];
+        localStorage.setItem('spots', JSON.stringify(spots));
+        logo.classList.remove('colored');
+              const snapshotContainer = logo.parentElement.querySelector('.snapshot-container');
+      snapshotContainer.innerHTML = '';
+      snapshotContainer.style.display = 'none';
+      logo.style.display = 'block';
+      } else {
+        spots[team] = new Date().toISOString();
+        localStorage.setItem('spots', JSON.stringify(spots));
+        logo.classList.add('colored');
+        
+        
+           if (cameraEnabled) {
+        takeSnapshotForLogo(logo);
+      }
+        
+        
+        if (allSelected()) {
+          const timeTakenMs = Date.now() - startTime;
+          const completionDate = new Date().toISOString();
+          leaderboard.push({ date: completionDate, timeMs: timeTakenMs });
+          localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+          renderLeaderboard();
+          alert(`Congratulations! You spotted all 32 fans in ${formatTime(timeTakenMs)}.`);
+        }
+      }
+    }
+
+    // Alternate showing logo and photo for each spotted team every 5 seconds
+  let showLogo = true;
+  setInterval(() => {
+    document.querySelectorAll('.team-logo-wrapper').forEach(wrapper => {
+      const logo = wrapper.querySelector('.team-logo');
+      const snapshotContainer = wrapper.querySelector('.snapshot-container');
+
+      if (snapshotContainer && snapshotContainer.children.length > 0 && logo.classList.contains('colored')) {
+        if (showLogo) {
+          logo.style.display = 'block';
+          snapshotContainer.style.display = 'none';
+        } else {
+          logo.style.display = 'none';
+          snapshotContainer.style.display = 'block';
+        }
+      } else {
+        logo.style.display = 'block';
+        if (snapshotContainer) snapshotContainer.style.display = 'none';
+      }
+    });
+    showLogo = !showLogo;
+  }, 5000);
+
+    function init() {
+      setLogoStates();
+      renderLeaderboard();
+      updateTimer();
+    }
+
+    logos.forEach(logo => {
+      logo.addEventListener('click', onLogoClick);
+      logo.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          logo.click();
+        }
+      });
+    });
+
+    resetButton.addEventListener('click', () => {
+      if (confirm('Are you sure you want to reset the timer and fan spots? This will clear current 24-hour period data.')) {
+        resetAll();
+      }
+    });
+
+    setInterval(updateTimer, 1000);
+    init();
+  </script>
+
+</body>
+</html>
