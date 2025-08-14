@@ -83,13 +83,16 @@
       max-width: 320px;
       width: 90vw;
       box-sizing: border-box;
+      margin-top: 20px;
+      margin-bottom: 60px; /* Increase this for more space between timer and grid */
     }
 
     /* NFL shield styling */
     #nfl-shield-logo {
-      width: 48px;
+      width: 120px;
       height: auto;
       user-select: none;
+      margin-bottom: 12px;
     }
 
     /* Timer with Digital-7 font and border fixing */
@@ -111,6 +114,7 @@
       text-align: center;
       white-space: nowrap;
       display: inline-block;
+      margin-bottom: 8px;
     }
 
     #reset-button {
@@ -139,6 +143,7 @@
       max-width: 960px;
       margin: 0 auto 30px;
       padding: 0 10px;
+      margin-top: 20px;
     }
 
     .team-logo {
@@ -319,10 +324,10 @@
 <div id="video-container">
   <video id="video" autoplay muted playsinline></video>
 </div>
-  <div id="timer-container" role="region" aria-label="Countdown timer and NFL shield logo">
-    <img src="Assets/Images/NFL.png" alt="NFL Shield Logo" id="nfl-shield-logo" />
-    <div id="timer" aria-live="polite" aria-label="Countdown timer">24:00:00</div>
-  </div>
+<div id="timer-container" role="region" aria-label="Countdown timer and NFL shield logo">
+  <img src="Assets/Images/NFL.png" alt="NFL Shield Logo" id="nfl-shield-logo" />
+  <div id="timer" aria-live="polite" aria-label="Countdown timer">24:00:00</div>
+</div>
 
   <button id="reset-button" title="Reset timer and spots">Reset</button>
 
@@ -477,7 +482,7 @@
   </div>
 
   <footer>
-   v1.0.3 Click a logo to spot a fan. The timer resets after 24 hours from the first spot. Completion times are shown here.
+   v1.0.4 Click a logo to spot a fan. The timer resets after 24 hours from the first spot. Completion times are shown here.
   </footer>
 
   <script>
